@@ -1,39 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react'
 
-function App() {
-  // Create the count state.
-  const [count, setCount] = useState(0);
-  // Create the counter (+1 every second).
-  useEffect(() => {
-    const timer = setTimeout(() => setCount(count + 1), 1000);
-    return () => clearTimeout(timer);
-  }, [count, setCount]);
-  // Return the App component.
+import { load, convertToGif } from './utils/ffmpeg'
+
+import { FormDynamic } from './components/FormDynamic'
+
+const App = () => {
+
+  const inputs = [
+    { name: 'initial', type: 'number', label: 'Initial', value: '0', props: { min: 0, max: 100 }},
+    { name: 'duration', type: 'number', label: 'Duration', value: '0', props: { min: 0, max: 100 } }
+  ]
+
+  const [ready, setReady] = useState(false)
+  const [video, setVideo] = useState()
+  const [gif, setGif] = useState()
+
+  useEffect(() =>  {
+   (async() => {
+      const isLoad = await load()
+      console.log(isLoad)
+      setReady(isLoad)
+   })() 
+  }, [])
+
+  const handleResetVideo = () => {
+    setVideo(null)
+    setGif(null)
+  }
+
+  const handleOnChangeInputVideo = (e) => setVideo(e.target.files?.item(0))
+
+  const handleOnLoadData = (e) => inputs.map(input => input.props.max = parseInt(e.target.duration))
+
+  const fileDownload = () => {
+    const a = document.createElement('a')
+    a.href = gif
+    a.download = 'prueba.gif'
+    a.click()
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.jsx</code> and save to reload.
-        </p>
-        <p>
-          Page has been open for <code>{count}</code> seconds.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </p>
-      </header>
+    <div className="container">
+
+      <h1 className="title">VideoToGif</h1>
+      
+      <div className="container__video">
+
+        { !ready && <img className="loading" src="assets/loading.gif"/> } 
+
+        { ready && video && !gif && <video controls src={URL.createObjectURL(video)} onLoadedData={handleOnLoadData} /> }
+
+        {
+          ready && !video && <div className="video-input">
+            <input id="video-input" hidden type="file" onChange={handleOnChangeInputVideo}/>
+            <label htmlFor="video-input">Choose video</label>
+          </div>
+        }
+
+        { gif && (
+          <div className="image">
+            <img src={gif}/>
+          </div>
+        )}
+
+      </div>
+
+      { ready && video && (
+        <div className="container__form">
+            <button className="btn-reset" onClick={handleResetVideo}>Reset Video</button>
+          { gif && <button className="btn-download" onClick={fileDownload}>Download</button> }
+          { !gif && (<>
+            <FormDynamic 
+              inputs={inputs} 
+              onSubmit={async (values) => {
+                const gifUrl = await convertToGif({ ...values, video })
+                setGif(gifUrl)
+              }}
+              titleSubmit="Convert"/>
+          </>)}
+
+        </div>
+      )}
+
     </div>
-  );
+  ) 
 }
 
-export default App;
+export default App

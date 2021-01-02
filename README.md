@@ -1,4 +1,4 @@
-# New Project
+# Convert Video To Gif
 
 > ✨ Bootstrapped with Create Snowpack App (CSA).
 
