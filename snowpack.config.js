@@ -16,7 +16,8 @@ module.exports = {
   },
   buildOptions: {
     /* ... */
-    out: 'docs'
+    out: 'docs',
+    baseUrl: '/react-js-video-to-gif/'
   },
   proxy: {
     /* ... */
